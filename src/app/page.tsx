@@ -6,12 +6,14 @@ import MapProvider from "@/lib/mapbox/provider";
 import MapStyles from "@/components/map/map-styles";
 import MapCotrols from "@/components/map/map-controls";
 import MapSearch from "@/components/map/map-search";
+import LocationPopupFocusTest from "@/components/location-popup-focus-test";
 
 export default function Home() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <div className="w-screen h-screen">
+
       <div
         id="map-container"
         ref={mapContainerRef}
@@ -21,9 +23,9 @@ export default function Home() {
       <MapProvider
         mapContainerRef={mapContainerRef}
         initialViewState={{
-          longitude: -122.4194,
-          latitude: 37.7749,
-          zoom: 10,
+          longitude: -58.4398227,
+          latitude: -34.5737946,
+          zoom: 14,
         }}
       >
         <MapSearch />
