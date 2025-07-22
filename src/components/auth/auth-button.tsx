@@ -8,6 +8,27 @@ import { supabase } from "@/lib/supabase";
 import { locationService } from "@/lib/location-service";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+// Función para obtener la URL base correcta según el entorno
+const getBaseUrl = () => {
+  // En desarrollo
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3001';
+  }
+  
+  // En producción, usar variables de entorno o detectar automáticamente
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+  
+  // Fallback: detectar desde window.location (solo en cliente)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Fallback final para producción
+  return 'https://mudanzify.vercel.app';
+};
+
 export function AuthButton() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,10 +93,11 @@ export function AuthButton() {
       setLoading(true);
       
       // Abrir popup nativo de Supabase con múltiples opciones
+      const baseUrl = getBaseUrl();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${baseUrl}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -90,7 +112,7 @@ export function AuthButton() {
           const { error: emailError } = await supabase.auth.signInWithOtp({
             email,
             options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`
+              emailRedirectTo: `${baseUrl}/auth/callback`
             }
           });
           
