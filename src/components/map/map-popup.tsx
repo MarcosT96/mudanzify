@@ -2,7 +2,7 @@
 
 import { useMap } from "@/context/map-context";
 import mapboxgl from "mapbox-gl";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 
 type PopupProps = {
@@ -24,59 +24,65 @@ export default function Popup({
 }: PopupProps) {
   const { map } = useMap();
 
-  const container = useMemo(() => {
-    return document.createElement("div");
-  }, []);
+  // UseRef to keep container stable across renders
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  if (!containerRef.current) {
+    containerRef.current = document.createElement("div");
+  }
+  const container = containerRef.current;
 
   const handleClose = useCallback(() => {
     onClose?.();
   }, [onClose]);
 
+  // Guardar instancia del popup para no recrearlo en cada render
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
+
   useEffect(() => {
     if (!map) return;
-
-    const popupOptions: mapboxgl.PopupOptions = {
-      ...props,
-      className: `mapboxgl-custom-popup ${className ?? ""}`,
-    };
-
-    const popup = new mapboxgl.Popup(popupOptions)
-      .setDOMContent(container)
-      .setMaxWidth("none");
-
-    popup.on("close", handleClose);
-
-    if (marker) {
-      const currentPopup = marker.getPopup();
-      if (currentPopup) {
-        currentPopup.remove();
+    // Solo crear el popup si no existe o si cambia marker/coords
+    if (!popupRef.current) {
+      const popupOptions: mapboxgl.PopupOptions = {
+        closeButton: true,
+        closeOnClick: false,
+        anchor: 'bottom',
+        className: `mapboxgl-custom-popup ${className ?? ''}`,
+        focusAfterOpen: false,
+      };
+      const popup = new mapboxgl.Popup(popupOptions)
+        .setDOMContent(container)
+        .setMaxWidth("none");
+      popup.on("close", handleClose);
+      popupRef.current = popup;
+      if (marker) {
+        const currentPopup = marker.getPopup();
+        if (currentPopup) {
+          currentPopup.remove();
+        }
+        marker.setPopup(popup);
+        marker.togglePopup();
+      } else if (latitude !== undefined && longitude !== undefined) {
+        popup.setLngLat([longitude, latitude]).addTo(map);
       }
-
-      marker.setPopup(popup);
-
-      marker.togglePopup();
-    } else if (latitude !== undefined && longitude !== undefined) {
-      popup.setLngLat([longitude, latitude]).addTo(map);
+    } else {
+      // Solo mover el popup si cambian coords
+      if (!marker && latitude !== undefined && longitude !== undefined) {
+        popupRef.current.setLngLat([longitude, latitude]);
+      }
     }
-
     return () => {
-      popup.off("close", handleClose);
-      popup.remove();
-
+      if (popupRef.current) {
+        popupRef.current.off("close", handleClose);
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
       if (marker && marker.getPopup()) {
         marker.setPopup(null);
       }
     };
-  }, [
-    map,
-    marker,
-    latitude,
-    longitude,
-    props,
-    className,
-    container,
-    handleClose,
-  ]);
+  }, [map, marker, latitude, longitude, className, handleClose, container]);
 
+  // El container nunca cambia, React actualiza el contenido normalmente
   return createPortal(children, container);
+
 }

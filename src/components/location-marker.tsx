@@ -6,9 +6,10 @@ import Marker from "./map/map-marker";
 interface LocationMarkerProps {
   location: LocationFeature;
   onHover: (data: LocationFeature) => void;
+  onClick?: (data: LocationFeature) => void;
 }
 
-export function LocationMarker({ location, onHover }: LocationMarkerProps) {
+export function LocationMarker({ location, onHover, onClick }: LocationMarkerProps) {
   return (
     <Marker
       longitude={location.geometry.coordinates[0]}
@@ -16,6 +17,9 @@ export function LocationMarker({ location, onHover }: LocationMarkerProps) {
       data={location}
       onHover={({ data }) => {
         onHover(data);
+      }}
+      onClick={({ data }) => {
+        if (onClick) onClick(data);
       }}
     >
       <div className="rounded-full flex items-center justify-center transform transition-all duration-200 bg-rose-500 text-white shadow-lg size-8 cursor-pointer hover:scale-110">

@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
 
 interface MapContextType {
-  map: mapboxgl.Map;
+  map: mapboxgl.Map | null;
+  loaded: boolean;
 }
 
 export const MapContext = createContext<MapContextType | null>(null);

@@ -42,9 +42,12 @@ export default function Marker({
   onClick,
   ...props
 }: Props) {
-  const { map } = useMap();
+  const { map, loaded } = useMap();
   const markerRef = useRef<HTMLDivElement | null>(null);
   let marker: mapboxgl.Marker | null = null;
+
+  // No renderizar nada si el mapa no está listo
+  if (!loaded || !map) return null;
 
   const handleHover = (isHovered: boolean) => {
     if (onHover && marker) {
