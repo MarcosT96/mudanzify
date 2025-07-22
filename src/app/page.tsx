@@ -6,7 +6,6 @@ import MapProvider from "@/lib/mapbox/provider";
 import MapStyles from "@/components/map/map-styles";
 import MapCotrols from "@/components/map/map-controls";
 import MapSearch from "@/components/map/map-search";
-import LocationPopupFocusTest from "@/components/location-popup-focus-test";
 
 export default function Home() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
